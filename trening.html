@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fitness Tracker для Telegram</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .tg-theme {
+      --tg-theme-bg-color: #1c1e21;
+      --tg-theme-text-color: #ffffff;
+      --tg-theme-hint-color: #8f9499;
+      --tg-theme-link-color: #6ab3f7;
+      --tg-theme-button-color: #3390ec;
+      --tg-theme-button-text-color: #ffffff;
+    }
+    .backdrop-blur-lg {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .tg-button {
+      background: var(--tg-theme-button-color, #3390ec);
+      color: var(--tg-theme-button-text-color, #ffffff);
+    }
+    .tg-button:hover {
+      opacity: 0.9;
+    }
+    .tg-icon {
+      filter: brightness(0) invert(1);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#1c1e21] text-white tg-theme">
+  <!-- Telegram Web App Header -->
+  <div class="bg-[#1c1e21] border-b border-[#2a2e33] px-4 py-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tg-icon">
+            <path d="M17 8l-5-5-5 5"></path>
+            <path d="M12 3v18"></path>
+            <path d="M9 18l3 3 3-3"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-semibold">Fitness Tracker</h1>
+          <p class="text-sm text-[#8f9499]">Добро пожаловать!</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button id="saveBtn" class="tg-button px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 tg-icon">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <line x1="7" y1="13" x2="7" y2="13"></line>
+            <line x1="17" y1="13" x2="17" y2="13"></line>
+          </svg>
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-6 max-w-md">
+    <!-- User Info -->
+    <div class="bg-[#2a2e33] rounded-2xl p-4 mb-6">
+      <div class="flex items-center">
+        <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mr-4">
+          <span class="text-white font-bold">П</span>
+        </div>
+        <div>
+          <h3 class="font-semibold">Пользователь</h3>
+          <p class="text-sm text-[#8f9499]">@fitness_user</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-[#2a2e33] rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-purple-400" id="totalWorkouts">0</div>
+        <div class="text-sm text-[#8f9499]">Тренировок</div>
+      </div>
+      <div class="bg-[#2a2e33] rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-blue-400" id="totalExercises">0</div>
+        <div class="text-sm text-[#8f9499]">Упражнений</div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <button id="addWorkoutBtn" class="tg-button py-3 rounded-xl font-medium flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 tg-icon">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Новая тренировка
+      </button>
+      <button id="exportCSV" class="bg-[#2a2e33] hover:bg-[#34383d] text-white py-3 rounded-xl font-medium flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Экспорт CSV
+      </button>
+    </div>
+
+    <!-- Workouts List -->
+    <div class="space-y-3" id="workoutsList">
+      <!-- Workouts will be populated here -->
+    </div>
+  </div>
+
+  <!-- Add Workout Modal -->
+  <div id="addWorkoutModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-[#2a2e33] rounded-2xl p-6 w-full max-w-md mx-4">
+      <h3 class="text-xl font-semibold mb-4">Новая тренировка</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[#8f9499] mb-2">Название</label>
+          <input type="text" id="workoutName" class="w-full bg-[#1c1e21] border border-[#2a2e33] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Например: Грудь и трицепс">
+        </div>
+        <div>
+          <label class="block text-[#8f9499] mb-2">Описание (опционально)</label>
+          <textarea id="workoutDescription" class="w-full bg-[#1c1e21] border border-[#2a2e33] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Описание тренировки..."></textarea>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button id="saveWorkoutBtn" class="flex-1 tg-button py-2 rounded-lg font-medium">
+          Добавить
+        </button>
+        <button id="cancelWorkoutBtn" class="flex-1 bg-[#2a2e33] hover:bg-[#34383d] text-white py-2 rounded-lg font-medium">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workout Details Modal -->
+  <div id="workoutDetailsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-[#2a2e33] rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+      <div id="workoutDetailsContent">
+        <!-- Content will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Exercise Modal -->
+  <div id="addExerciseModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-[#2a2e33] rounded-2xl p-6 w-full max-w-md mx-4">
+      <h3 class="text-xl font-semibold mb-4">Новое упражнение</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[#8f9499] mb-2">Название упражнения</label>
+          <input type="text" id="exerciseName" class="w-full bg-[#1c1e21] border border-[#2a2e33] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Например: Жим лежа">
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button id="saveExerciseBtn" class="flex-1 tg-button py-2 rounded-lg font-medium">
+          Добавить
+        </button>
+        <button id="cancelExerciseBtn" class="flex-1 bg-[#2a2e33] hover:bg-[#34383d] text-white py-2 rounded-lg font-medium">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Set Modal -->
+  <div id="addSetModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-[#2a2e33] rounded-2xl p-6 w-full max-w-md mx-4">
+      <h3 class="text-xl font-semibold mb-4">Новый подход</h3>
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[#8f9499] mb-2">Повторы</label>
+            <input type="number" id="setReps" class="w-full bg-[#1c1e21] border border-[#2a2e33] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="10">
+          </div>
+          <div>
+            <label class="block text-[#8f9499] mb-2">Вес (кг)</label>
+            <input type="number" id="setWeight" class="w-full bg-[#1c1e21] border border-[#2a2e33] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="50">
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button id="saveSetBtn" class="flex-1 tg-button py-2 rounded-lg font-medium">
+          Добавить
+        </button>
+        <button id="cancelSetBtn" class="flex-1 bg-[#2a2e33] hover:bg-[#34383d] text-white py-2 rounded-lg font-medium">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Telegram Web App Simulation
+    const Telegram = {
+      WebApp: {
+        ready: function() {
+          console.log('Telegram Web App is ready');
+        },
+        expand: function() {
+          console.log('Expanded');
+        },
+        onClose: function() {
+          console.log('Close callback set');
+        },
+        sendData: function(data) {
+          console.log('Data sent:', data);
+        },
+        showPopup: function(params) {
+          alert(params.message || 'Popup message');
+        },
+        themeParams: {
+          bg_color: '#1c1e21',
+          text_color: '#ffffff',
+          hint_color: '#8f9499',
+          link_color: '#6ab3f7',
+          button_color: '#3390ec',
+          button_text_color: '#ffffff'
+        }
+      }
+    };
+
+    // Initialize Telegram Web App
+    if (Telegram.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+    }
+
+    // Initialize data
+    let workouts = JSON.parse(localStorage.getItem('fitness-workouts-telegram')) || [];
+    let selectedWorkoutId = null;
+    let currentExerciseId = null;
+
+    // DOM Elements
+    const workoutsList = document.getElementById('workoutsList');
+    const addWorkoutBtn = document.getElementById('addWorkoutBtn');
+    const addWorkoutModal = document.getElementById('addWorkoutModal');
+    const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
+    const cancelWorkoutBtn = document.getElementById('cancelWorkoutBtn');
+    const saveExerciseBtn = document.getElementById('saveExerciseBtn');
+    const cancelExerciseBtn = document.getElementById('cancelExerciseBtn');
+    const addExerciseModal = document.getElementById('addExerciseModal');
+    const saveSetBtn = document.getElementById('saveSetBtn');
+    const cancelSetBtn = document.getElementById('cancelSetBtn');
+    const addSetModal = document.getElementById('addSetModal');
+    const exportCSV = document.getElementById('exportCSV');
+    const workoutDetailsModal = document.getElementById('workoutDetailsModal');
+    const saveBtn = document.getElementById('saveBtn');
+
+    // Stats elements
+    const totalWorkouts = document.getElementById('totalWorkouts');
+    const totalExercises = document.getElementById('totalExercises');
+
+    // Input elements
+    const workoutName = document.getElementById('workoutName');
+    const workoutDescription = document.getElementById('workoutDescription');
+    const exerciseName = document.getElementById('exerciseName');
+    const setReps = document.getElementById('setReps');
+    const setWeight = document.getElementById('setWeight');
+
+    // Format date
+    function formatDate(dateString) {
+      if (!dateString) return 'Никогда';
+      try {
+        return new Date(dateString).toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      } catch (e) {
+        return 'Некорректная дата';
+      }
+    }
+
+    // Format datetime for CSV
+    function formatDateTime(dateString) {
+      if (!dateString) return '';
+      try {
+        return new Date(dateString).toISOString();
+      } catch (e) {
+        return '';
+      }
+    }
+
+    // Save data to localStorage
+    function saveData() {
+      try {
+        localStorage.setItem('fitness-workouts-telegram', JSON.stringify(workouts));
+        updateStats();
+        // Simulate sending data to Telegram
+        if (Telegram.WebApp) {
+          Telegram.WebApp.sendData(JSON.stringify({ action: 'data_saved', timestamp: new Date().toISOString() }));
+        }
+      } catch (e) {
+        console.error('Ошибка сохранения данных:', e);
+        if (Telegram.WebApp) {
+          Telegram.WebApp.showPopup({
+            message: 'Ошибка сохранения данных. Проверьте настройки браузера.'
+          });
+        }
+      }
+    }
+
+    // Update stats
+    function updateStats() {
+      totalWorkouts.textContent = workouts.length;
+      
+      const exerciseCount = workouts.reduce((total, w) => total + (w.exercises ? w.exercises.length : 0), 0);
+      totalExercises.textContent = exerciseCount;
+    }
+
+    // Render workouts list
+    function renderWorkouts() {
+      workoutsList.innerHTML = '';
+      
+      if (workouts.length === 0) {
+        workoutsList.innerHTML = `
+          <div class="text-center py-12 text-[#8f9499]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-16 h-16 mx-auto mb-4 opacity-50 tg-icon">
+              <path d="M17 8l-5-5-5 5"></path>
+              <path d="M12 3v18"></path>
+              <path d="M9 18l3 3 3-3"></path>
+            </svg>
+            <p class="mb-2">Нет созданных тренировок</p>
+            <p class="text-sm">Нажмите "Новая тренировка" для начала</p>
+          </div>
+        `;
+        return;
+      }
+
+      workouts.forEach(workout => {
+        const workoutElement = document.createElement('div');
+        workoutElement.className = `bg-[#2a2e33] rounded-xl p-4 cursor-pointer transition-all hover:bg-[#34383d]`;
+        workoutElement.dataset.id = workout.id;
+        
+        workoutElement.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold">${workout.name}</h3>
+            <div class="text-xs text-[#8f9499]">${workout.exercises ? workout.exercises.length : 0} упр.</div>
+          </div>
+          ${workout.description ? `<p class="text-sm text-[#8f9499] mb-2">${workout.description}</p>` : ''}
+          <div class="flex items-center justify-between text-xs text-[#8f9499]">
+            <span>Последняя: ${formatDate(workout.lastTrained)}</span>
+            <button class="view-workout text-blue-400 hover:text-blue-300">Просмотр</button>
+          </div>
+        `;
+        
+        workoutElement.addEventListener('click', (e) => {
+          if (e.target.classList.contains('view-workout')) {
+            selectedWorkoutId = workout.id;
+            renderWorkoutDetails();
+            workoutDetailsModal.classList.remove('hidden');
+          }
+        });
+        
+        workoutsList.appendChild(workoutElement);
+      });
+    }
+
+    // Render workout details
+    function renderWorkoutDetails() {
+      const workoutDetailsContent = document.getElementById('workoutDetailsContent');
+      const workout = workouts.find(w => w.id === selectedWorkoutId);
+      if (!workout) return;
+
+      workoutDetailsContent.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold">${workout.name}</h2>
+          <button id="closeDetailsBtn" class="text-[#8f9499] hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        
+        ${workout.description ? `<p class="text-[#8f9499] mb-4">${workout.description}</p>` : ''}
+        
+        <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+          <div class="bg-[#1c1e21] rounded-lg p-3">
+            <div class="text-[#8f9499]">Создана</div>
+            <div>${formatDate(workout.createdAt)}</div>
+          </div>
+          <div class="bg-[#1c1e21] rounded-lg p-3">
+            <div class="text-[#8f9499]">Последняя</div>
+            <div>${formatDate(workout.lastTrained)}</div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold">Упражнения</h3>
+          <button id="addExerciseBtnDetails" class="tg-button px-3 py-1 rounded-lg text-sm font-medium text-white flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 tg-icon">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Добавить
+          </button>
+        </div>
+      `;
+      
+      if (!workout.exercises || workout.exercises.length === 0) {
+        const noExercises = document.createElement('div');
+        noExercises.className = 'text-center py-8 text-[#8f9499] border-2 border-dashed border-[#2a2e33] rounded-xl';
+        noExercises.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mx-auto mb-4 opacity-50 tg-icon">
+            <path d="M17 8l-5-5-5 5"></path>
+            <path d="M12 3v18"></path>
+            <path d="M9 18l3 3 3-3"></path>
+          </svg>
+          <p>Нет упражнений</p>
+          <p class="text-sm mt-1">Добавьте первое упражнение</p>
+        `;
+        workoutDetailsContent.appendChild(noExercises);
+      } else {
+        const exercisesContainer = document.createElement('div');
+        exercisesContainer.className = 'space-y-3';
+        
+        workout.exercises.forEach(exercise => {
+          const exerciseElement = document.createElement('div');
+          exerciseElement.className = 'bg-[#1c1e21] rounded-lg p-3';
+          
+          // Calculate total volume
+          const totalVolume = (exercise.sets || []).reduce((total, set) => {
+            const weight = parseFloat(set.weight) || 0;
+            const reps = parseInt(set.reps) || 0;
+            return total + (weight * reps);
+          }, 0);
+          
+          exerciseElement.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-medium">${exercise.name}</h4>
+              <button class="remove-exercise text-red-400 hover:text-red-300" data-exercise-id="${exercise.id}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div class="text-xs text-[#8f9499] mb-2">
+              Общий объем: ${totalVolume} кг
+            </div>
+
+            <div class="space-y-2 mb-3">
+              ${(exercise.sets || []).map((set, index) => `
+                <div class="flex items-center justify-between bg-[#2a2e33] rounded px-2 py-1 text-xs">
+                  <span>#${index + 1}</span>
+                  <span>${set.reps} × ${set.weight} кг</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <button class="add-set tg-button w-full py-1 rounded text-xs font-medium flex items-center justify-center" data-exercise-id="${exercise.id}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 tg-icon">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Добавить подход
+            </button>
+          `;
+          
+          exercisesContainer.appendChild(exerciseElement);
+        });
+        
+        workoutDetailsContent.appendChild(exercisesContainer);
+      }
+
+      // Add "Пройдено" button if there are exercises
+      if (workout.exercises && workout.exercises.length > 0) {
+        const markTrainedBtn = document.createElement('button');
+        markTrainedBtn.className = 'tg-button w-full mt-4 py-3 rounded-lg font-medium flex items-center justify-center';
+        markTrainedBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 tg-icon">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Отметить как пройденную
+        `;
+        markTrainedBtn.addEventListener('click', markAsTrained);
+        workoutDetailsContent.appendChild(markTrainedBtn);
+      }
+
+      // Add event listeners
+      document.getElementById('closeDetailsBtn').addEventListener('click', () => {
+        workoutDetailsModal.classList.add('hidden');
+      });
+      
+      document.getElementById('addExerciseBtnDetails').addEventListener('click', () => {
+        currentExerciseId = null;
+        exerciseName.value = '';
+        addExerciseModal.classList.remove('hidden');
+        workoutDetailsModal.classList.add('hidden');
+      });
+      
+      // Add set buttons
+      document.querySelectorAll('.add-set').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          currentExerciseId = e.target.closest('.add-set').dataset.exerciseId;
+          setReps.value = '';
+          setWeight.value = '';
+          addSetModal.classList.remove('hidden');
+          workoutDetailsModal.classList.add('hidden');
+        });
+      });
+      
+      // Remove exercise buttons
+      document.querySelectorAll('.remove-exercise').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const exerciseId = e.target.closest('.remove-exercise').dataset.exerciseId;
+          removeExercise(exerciseId);
+        });
+      });
+    }
+
+    // Mark workout as trained
+    function markAsTrained() {
+      const workout = workouts.find(w => w.id === selectedWorkoutId);
+      if (workout) {
+        workout.lastTrained = new Date().toISOString();
+        saveData();
+        renderWorkouts();
+        renderWorkoutDetails();
+        
+        // Show success message
+        if (Telegram.WebApp) {
+          Telegram.WebApp.showPopup({
+            message: `Тренировка "${workout.name}" отмечена как пройденная!`
+          });
+        }
+      }
+    }
+
+    // Remove exercise
+    function removeExercise(exerciseId) {
+      const workout = workouts.find(w => w.id === selectedWorkoutId);
+      if (workout && workout.exercises) {
+        workout.exercises = workout.exercises.filter(e => e.id !== exerciseId);
+        saveData();
+        renderWorkoutDetails();
+        workoutDetailsModal.classList.remove('hidden');
+      }
+    }
+
+    // Export to CSV
+    function exportToCSV() {
+      try {
+        // Create CSV header
+        let csv = 'Тренировка,Упражнение,Подход,Повторы,Вес,Дата тренировки,Дата создания тренировки\n';
+        
+        // Add data rows
+        workouts.forEach(workout => {
+          (workout.exercises || []).forEach(exercise => {
+            (exercise.sets || []).forEach((set, setIndex) => {
+              csv += `"${workout.name || ''}","${exercise.name || ''}",${setIndex + 1},${set.reps || ''},${set.weight || ''},"${formatDateTime(workout.lastTrained)}","${formatDateTime(workout.createdAt)}"\n`;
+            });
+          });
+        });
+        
+        // Create download link
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `fitness-tracker-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        // Show success message
+        if (Telegram.WebApp) {
+          Telegram.WebApp.showPopup({
+            message: 'Данные успешно экспортированы в CSV!'
+          });
+        }
+      } catch (e) {
+        console.error('Ошибка экспорта CSV:', e);
+        if (Telegram.WebApp) {
+          Telegram.WebApp.showPopup({
+            message: 'Не удалось экспортировать данные. Попробуйте снова.'
+          });
+        }
+      }
+    }
+
+    // Event Listeners
+    addWorkoutBtn.addEventListener('click', () => {
+      workoutName.value = '';
+      workoutDescription.value = '';
+      addWorkoutModal.classList.remove('hidden');
+    });
+
+    cancelWorkoutBtn.addEventListener('click', () => {
+      addWorkoutModal.classList.add('hidden');
+    });
+
+    saveWorkoutBtn.addEventListener('click', () => {
+      if (workoutName.value.trim()) {
+        const workout = {
+          id: Date.now(),
+          name: workoutName.value.trim(),
+          description: workoutDescription.value.trim(),
+          exercises: [],
+          createdAt: new Date().toISOString(),
+          lastTrained: null
+        };
+        workouts.push(workout);
+        saveData();
+        addWorkoutModal.classList.add('hidden');
+        renderWorkouts();
+        
+        // Show success message
+        if (Telegram.WebApp) {
+          Telegram.WebApp.showPopup({
+            message: `Тренировка "${workout.name}" создана!`
+          });
+        }
+      }
+    });
+
+    cancelExerciseBtn.addEventListener('click', () => {
+      addExerciseModal.classList.add('hidden');
+    });
+
+    saveExerciseBtn.addEventListener('click', () => {
+      if (exerciseName.value.trim()) {
+        const workout = workouts.find(w => w.id === selectedWorkoutId);
+        if (workout) {
+          if (!workout.exercises) {
+            workout.exercises = [];
+          }
+          const exercise = {
+            id: Date.now(),
+            name: exerciseName.value.trim(),
+            sets: []
+          };
+          workout.exercises.push(exercise);
+          saveData();
+          addExerciseModal.classList.add('hidden');
+          workoutDetailsModal.classList.remove('hidden');
+          
+          // Show success message
+          if (Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+              message: `Упражнение "${exercise.name}" добавлено!`
+            });
+          }
+        }
+      }
+    });
+
+    cancelSetBtn.addEventListener('click', () => {
+      addSetModal.classList.add('hidden');
+    });
+
+    saveSetBtn.addEventListener('click', () => {
+      if (setReps.value && setWeight.value) {
+        const workout = workouts.find(w => w.id === selectedWorkoutId);
+        if (workout) {
+          const exercise = workout.exercises.find(e => e.id == currentExerciseId);
+          if (exercise) {
+            if (!exercise.sets) {
+              exercise.sets = [];
+            }
+            exercise.sets.push({
+              reps: setReps.value,
+              weight: setWeight.value
+            });
+            saveData();
+            addSetModal.classList.add('hidden');
+            workoutDetailsModal.classList.remove('hidden');
+            
+            // Show success message
+            if (Telegram.WebApp) {
+              Telegram.WebApp.showPopup({
+                message: 'Подход добавлен!'
+              });
+            }
+          }
+        }
+      }
+    });
+
+    exportCSV.addEventListener('click', exportToCSV);
+
+    saveBtn.addEventListener('click', saveData);
+
+    // Close modals when clicking outside or with close buttons
+    [addWorkoutModal, addExerciseModal, addSetModal, workoutDetailsModal].forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+    });
+
+    // Initial render
+    try {
+      renderWorkouts();
+      updateStats();
+    } catch (e) {
+      console.error('Ошибка инициализации:', e);
+    }
+  </script>
+</body>
+</html>
